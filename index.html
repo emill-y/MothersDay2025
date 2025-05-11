@@ -154,7 +154,7 @@
     }
 
     .arrow.down {
-      top: 60%;
+      top: 80%;
       left: calc(50% - 17px);
     }
 
@@ -167,27 +167,24 @@
     }
 
     .envelope-container.open .envelope-image {
-      transform: translateY(10px); /* Adjusted position above the envelope */
-      z-index: 4; /* Make sure the image sits above the envelope */
+      transform: translateY(40px);
     }
 
-    #noteImageContainer {
-      margin-top: 10px; /* Reduced margin for better image positioning */
-      position: relative;
-      z-index: 4;
-    }
-
-    #noteImage {
-      width: 280px; /* Slightly smaller image */
-      max-height: 200px; /* Ensuring it doesn't take up too much space */
-      object-fit: cover; /* Maintain aspect ratio */
-      display: none; /* Initially hidden */
+    /* New styles for the image to overlap the envelope */
+    .note-image {
       position: absolute;
-      top: -40px; /* Positioned just over the envelope */
+      top: +300px;  /* Adjust to overlap the envelope */
       left: 50%;
-      transform: translateX(-50%); /* Center it horizontally */
+      transform: translateX(-50%) scale(0.8);  /* Adjust scale to make the image smaller */
+      max-width: 280px; /* Adjusted width */
+      border-radius: 10px;
+      z-index: 4;  /* Make sure it's on top of the envelope */
+      display: none; /* Initially hidden */
     }
 
+    .envelope-container.open .note-image {
+      display: block;  /* Show when envelope is open */
+    }
   </style>
 </head>
 <body>
@@ -205,8 +202,8 @@
   </div>
 
   <!-- Separate image section below the envelope container -->
-  <div id="noteImageContainer">
-    <img id="noteImage" src="" alt="Note Image">
+  <div id="noteImageContainer" style="margin-top: 100px;">
+    <img id="noteImage" class="note-image" src="" alt="Note Image">
   </div>
 </div>
 
@@ -237,10 +234,6 @@
       // Update the image
       noteImage.src = entry.img;
       noteImage.style.display = "block";  // Show the image
-      if (isOpen) {
-        // Ensure the image stays visible when the envelope is open
-        noteImage.style.top = "-40px";  // Adjust the position to ensure it overlaps the envelope
-      }
     }, 300);
   }
 
@@ -265,7 +258,7 @@
             note.classList.remove('show');
             prevArrow.classList.remove('show');
             nextArrow.classList.remove('show');
-            noteImage.style.display = "none";  // Hide the image when the envelope is closed
+            noteImage.style.display = "none";  // Hide image when envelope is closed
           }
         });
 
