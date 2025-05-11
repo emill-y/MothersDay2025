@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Envelope Gallery</title>
+  <style>
+    body {
+      margin: 0;
+      background: #ffffff;
+      font-family: 'Georgia', serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .gallery-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    .note {
+      position: absolute;
+      top: 12%;
+      width: 360px;
+      max-height: 300px;
+      background: #fffdf8;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.8s ease;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      z-index: 5;
+      pointer-events: none;
+      overflow-y: auto;
+      scrollbar-width: thin; /* For Firefox */
+    }
+
+    .note::-webkit-scrollbar {
+      width: 6px;
+    }
+    .note::-webkit-scrollbar-thumb {
+      background-color: #d4bfa5;
+      border-radius: 4px;
+    }
+
+    .note.show {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .note p {
+      margin-top: 10px;
+      font-size: 1rem;
+      color: #5c5043;
+      line-height: 1.5;
+      white-space: normal;
+    }
+
+    .note img {
+      max-width: 100%;
+      border-radius: 10px;
+    }
+
+    .note-text {
+      max-height: 160px; /* Adjust this based on your layout */
+      overflow-y: auto;
+      padding-right: 4px;
+      margin-top: 10px;
+      scrollbar-width: thin;
+      background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1) 90%);
+    }
+
+    .envelope-container {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 300px;
+      height: 180px;
+      transition: transform 1s ease;
+      cursor: pointer;
+      z-index: 3;
+    }
+
+    .envelope-container.open {
+      transform: translateY(60px);
+    }
+
+    .envelope {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: #f4e2ce;
+      border: 2px solid #d4bfa5;
+      border-radius: 0 0 10px 10px;
+      overflow: hidden;
+    }
+
+    .flap {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 0;
+      height: 0;
+      border-left: 150px solid transparent;
+      border-right: 150px solid transparent;
+      border-bottom: 90px solid #f4e2ce;
+      transform-origin: top;
+      transition: transform 1s ease;
+      z-index: 2;
+    }
+
+    .envelope.open .flap {
+      transform: rotateX(120deg);
+    }
+
+    .arrow {
+      position: absolute;
+      font-size: 1.8rem;
+      color: #5c5043;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 50%;
+      width: 34px;
+      height: 34px;
+      text-align: center;
+      line-height: 34px;
+      cursor: pointer;
+      z-index: 10;
+      user-select: none;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      pointer-events: none;
+    }
+
+    .arrow.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .arrow.up {
+      top: 5%;
+      left: calc(50% - 17px);
+    }
+
+    .arrow.down {
+      top: 60%;
+      left: calc(50% - 17px);
+    }
+
+    .envelope-image {
+      width: 300px;
+      height: auto;
+      cursor: pointer;
+      transition: transform 0.8s ease;
+      border-radius: 8px;
+    }
+
+    .envelope-container.open .envelope-image {
+      transform: translateY(10px); /* Adjusted position above the envelope */
+      z-index: 4; /* Make sure the image sits above the envelope */
+    }
+
+    #noteImageContainer {
+      margin-top: 10px; /* Reduced margin for better image positioning */
+      position: relative;
+      z-index: 4;
+    }
+
+    #noteImage {
+      width: 280px; /* Slightly smaller image */
+      max-height: 200px; /* Ensuring it doesn't take up too much space */
+      object-fit: cover; /* Maintain aspect ratio */
+      display: none; /* Initially hidden */
+      position: absolute;
+      top: -40px; /* Positioned just over the envelope */
+      left: 50%;
+      transform: translateX(-50%); /* Center it horizontally */
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="gallery-wrapper">
+  <div class="note" id="note">
+    <div class="note-text" id="noteText"></div>
+  </div>
+
+  <div class="arrow up" id="prevArrow">&#9650;</div>
+  <div class="arrow down" id="nextArrow">&#9660;</div>
+
+  <div class="envelope-container" id="envelopeContainer">
+    <img id="envelopeImage" src="resources/envelopeClosed.jpg" alt="Envelope" class="envelope-image">
+  </div>
+
+  <!-- Separate image section below the envelope container -->
+  <div id="noteImageContainer">
+    <img id="noteImage" src="" alt="Note Image">
+  </div>
+</div>
+
+<script>
+  const envelopeImage = document.getElementById('envelopeImage');
+  const envelopeContainer = document.getElementById('envelopeContainer');
+  const note = document.getElementById('note');
+  const noteText = document.getElementById('noteText');
+  const prevArrow = document.getElementById('prevArrow');
+  const nextArrow = document.getElementById('nextArrow');
+  const noteImage = document.getElementById('noteImage');
+  const noteImageContainer = document.getElementById('noteImageContainer');
+
+  let isOpen = false;
+  let currentIndex = 0;
+  let images = [];
+
+  function updateNote(index) {
+    note.classList.remove('show');
+    noteImage.style.display = "none";  // Hide the image when the note changes
+    setTimeout(() => {
+      const entry = images[index];
+      noteText.innerHTML = `
+        <p>${entry.text}</p>
+      `;
+      note.classList.add('show');
+
+      // Update the image
+      noteImage.src = entry.img;
+      noteImage.style.display = "block";  // Show the image
+      if (isOpen) {
+        // Ensure the image stays visible when the envelope is open
+        noteImage.style.top = "-40px";  // Adjust the position to ensure it overlaps the envelope
+      }
+    }, 300);
+  }
+
+  // Load JSON file
+  fetch('data.json')
+    .then(response => response.json())
+    .then(data => {
+      images = data;
+
+      envelopeContainer.addEventListener('click', () => {
+          isOpen = !isOpen;
+          envelopeContainer.classList.toggle('open');
+          envelopeImage.src = isOpen ? 'resources/envelopeOpen.jpg' : 'resources/envelopeClosed.jpg';
+
+          if (isOpen) {
+            updateNote(currentIndex);
+            setTimeout(() => {
+              prevArrow.classList.add('show');
+              nextArrow.classList.add('show');
+            }, 800);
+          } else {
+            note.classList.remove('show');
+            prevArrow.classList.remove('show');
+            nextArrow.classList.remove('show');
+            noteImage.style.display = "none";  // Hide the image when the envelope is closed
+          }
+        });
+
+      nextArrow.addEventListener('click', () => {
+        if (!isOpen) return;
+        currentIndex = (currentIndex + 1) % images.length;
+        updateNote(currentIndex);
+      });
+
+      prevArrow.addEventListener('click', () => {
+        if (!isOpen) return;
+        currentIndex = (currentIndex - 1 + images.length) % images.length;
+        updateNote(currentIndex);
+      });
+    })
+    .catch(err => {
+      console.error('Failed to load data:', err);
+      noteText.innerHTML = `<p style="color: red;">Failed to load messages. Check data.json file.</p>`;
+      note.classList.add('show');
+    });
+</script>
+</body>
+</html>
